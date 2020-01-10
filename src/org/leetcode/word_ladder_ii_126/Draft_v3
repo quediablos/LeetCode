@@ -13,7 +13,6 @@ public class Solution {
     private HashMap<String,List<String>> neighbours = new HashMap();
     private int minLength = 9999999;
     private HashSet<String> deadEnds = new HashSet<>();
-    private HashMap<String,Integer> distances = new HashMap<>();
 
     public boolean canTransormTo(String source, String destination)
     {
@@ -47,15 +46,7 @@ public class Solution {
         neighbours.get(word).add(neigbour);
     }
 
-    private void calculateDistances(List<String> wordList, String endWord)
-    {
-        for (String word: wordList)
-        {
-            distances.put(word,distance(word,endWord));
-        }
-    }
-
-    private void generateNeighbours(List<String> wordList)
+    private void generateRoutes(List<String> wordList)
     {
         for (int i=0; i<wordList.size()-1; i++)
         {
@@ -66,6 +57,7 @@ public class Solution {
 
                 if (canTransormTo(word,neighbour))
                 {
+
                     addNeighbour(word,neighbour);
                     addNeighbour(neighbour,word);
 
@@ -75,15 +67,9 @@ public class Solution {
         }
     }
 
-    private int distance(String word1, String word2)
+    private List<String> findNextDestionations(String from)
     {
-        int distance = 0;
-        for (int i=0; i<word2.length(); i++)
-        {
-            if (word1.charAt(i) != word2.charAt(i))
-                distance++;
-        }
-        return distance;
+        return null;
     }
 
 
@@ -100,48 +86,41 @@ public class Solution {
         return stringBuilder.toString();
     }
 
-    private List<String> getNeighbours(String from)
+    private LinkedList<String> mergePaths(LinkedList<String> path1, LinkedList<String> path2)
     {
-        List<String> availableNeighbours = neighbours.get(from);
+        LinkedList<String> pathMerged = new LinkedList<>();
+        Iterator<String> iterator = path2.iterator();
 
-        if (availableNeighbours == null)
-            return null;
-
-        //Sort neighbours by distance
-        /*for (int i=0; i<availableNeighbours.size(); i++)
-        {
-            for (int k=0; k<availableNeighbours.size()-i-1; k++)
-            {
-                if (distances.get(availableNeighbours.get(k)) > distances.get(availableNeighbours.get(k+1)))
-                {
-                    String temp = new String(availableNeighbours.get(k));
-                    availableNeighbours.set(k,availableNeighbours.get(k+1));
-                    availableNeighbours.set(k+1,temp);
-                }
-            }
-        }*/
-
-        //Include the neighbours with min distance
-        int distanceMin = 9999999;
-
-        for (int i=0; i<availableNeighbours.size(); i++)
-        {
-            if (distances.get(availableNeighbours.get(i)) < distanceMin)
-                distanceMin = distances.get(availableNeighbours.get(i));
-        }
-
-        for (int i=0; i<availableNeighbours.size(); i++)
-        {
-            if (distances.get(availableNeighbours.get(i)) > distanceMin)
-                availableNeighbours.remove(i);
-        }
-        return availableNeighbours;
-
+        pathMerged.addAll(path1);
+        pathMerged.addAll(path2);
+        return pathMerged;
     }
+
+    private boolean isNeighbourCloser(LinkedList<String> pathPrevious, String neighbour)
+    {
+        Iterator iterator = pathPrevious.iterator();
+        int i=0;
+        while(iterator.hasNext())
+        {
+            if (i==pathPrevious.size()-1)
+                break;
+
+            List<String> neighboursOfNode = neighbours.get(iterator.next());
+
+            if (neighboursOfNode != null && neighboursOfNode.contains(neighbour))
+                return true;
+
+            i++;
+        }
+
+        return false;
+    }
+
+
 
     private List<List<String>> findPaths(String from, String destination, LinkedList<String> pathPrevious)
     {
-        List<String> availableNeighbours = getNeighbours(from);
+        List<String> availableNeighbours = neighbours.get(from);
         List<List<String>> pathsFromMe = new ArrayList<>();
 
         //Path found
@@ -159,8 +138,8 @@ public class Solution {
             {
                 pathPrevious.addLast(from);
 
-                if (pathPrevious.size() < minLength)
-                    minLength = pathPrevious.size();
+                /*if (pathPrevious.size() < minLength)
+                    minLength = pathPrevious.size();*/
 
                 pathsFromMe.add((List)pathPrevious.clone());
                 return pathsFromMe;
@@ -169,6 +148,7 @@ public class Solution {
         //Dead end
         else if (availableNeighbours == null)
         {
+            //deadEnds.add(from);
             return pathsFromMe;
         }
         //Continue
@@ -179,18 +159,31 @@ public class Solution {
 
             pathPrevious.add(from);
 
+            boolean pathTooLong = false;
+            int countCircular = 0;
+            int countDeadEnd = 0;
             for (String neighbour : availableNeighbours)
             {
-
-                if (pathPrevious != null && pathPrevious.contains(neighbour))
-                    continue;
-
-                else if (pathPrevious.size() == minLength)
+                if (pathPrevious.size() == minLength)
+                {
+                    pathTooLong = true;
                     break;
+                }
+
+                if ((pathPrevious != null && pathPrevious.contains(neighbour)) || isNeighbourCloser(pathPrevious,neighbour))
+                {
+                    countCircular++;
+                    continue;
+                }
+                else if (deadEnds.contains(neighbour))
+                {
+                    countDeadEnd++;
+                    continue;
+                }
 
 
                 List<List<String>> pathsFromNeighbour = findPaths(neighbour,destination,pathPrevious);
-
+                //System.out.println(getPathView(pathPrevious));
                 for (List<String> pathFromNeighbour : pathsFromNeighbour)
                 {
                     pathsFromMe.add(pathFromNeighbour);
@@ -198,6 +191,9 @@ public class Solution {
                 if (pathPrevious.size() != 0)
                     pathPrevious.removeLast();
             }
+
+            /*if (pathsFromMe.isEmpty() && !pathTooLong && countCircular == 0 && countDeadEnd == 0)
+                deadEnds.add(from);*/
 
             return pathsFromMe;
         }
@@ -215,14 +211,28 @@ public class Solution {
      */
     public List<List<String>> findLadders(String beginWord, String endWord, List<String> wordList) {
 
+        //long t0 = System.nanoTime();
+
+        if (!wordList.contains(endWord))
+            return new ArrayList<>();
+
         if (!wordList.contains(beginWord))
             wordList.add(beginWord);
 
-        generateNeighbours(wordList);
 
-        calculateDistances(wordList,endWord);
+        generateRoutes(wordList);
 
-        List<List<String>> allPaths = findPaths(beginWord,endWord,null);
+        for (minLength = 3; minLength <=wordList.size() ; minLength++)
+        {
+            List<List<String>> allPaths = findPaths(beginWord,endWord,null);
+
+            if (!allPaths.isEmpty())
+                return allPaths;
+        }
+
+        return new ArrayList<>();
+
+        /*List<List<String>> allPaths = findPaths(beginWord,endWord,null);
 
         List<List<String>> shortestPaths = new ArrayList<>();
 
@@ -232,7 +242,9 @@ public class Solution {
                 shortestPaths.add(path);
         }
 
-        return shortestPaths;
+        //System.out.println((System.nanoTime()-t0));
+
+        return shortestPaths;*/
 
     }
 
