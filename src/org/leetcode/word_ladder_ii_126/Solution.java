@@ -1,21 +1,13 @@
 package org.leetcode.word_ladder_ii_126;
 
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 
 public class Solution {
 
     private HashMap<String,List<String>> neighbours = new HashMap();
     private int minLength = 9999999;
-    private HashSet<String> deadEnds = new HashSet<>();
     private HashMap<String,Integer> distances = new HashMap<>();
-
 
     public class Node
     {
@@ -40,16 +32,12 @@ public class Solution {
             }
         }
 
-       /* @Override
-        public boolean equals(Object obj)
-        {
-            if (!(obj instanceof Node))
-                return false;
-
-            Node other = (Node)obj;
-
-            return other.word.equals(word) &&
-        }*/
+        @Override
+        public String toString() {
+            return "Node{" +
+                    "word='" + word + '\'' +
+                    '}';
+        }
     }
 
     public boolean canTransormTo(String source, String destination)
@@ -168,44 +156,122 @@ public class Solution {
 
     }
 
-    /*private ArrayList<LinkedList<String>> forkPath( HashMap<String,ArrayList<LinkedList<String>>> paths,
-                                                    String endNode, ArrayList<String> childNodes)
+    private int getChangedIndex(String word1, String word2)
     {
+        for (int i=0; i<word1.length(); i++)
+        {
+            if (word1.charAt(i) != word2.charAt(i))
+                return i;
+        }
 
-    }*/
+        return -1;
+    }
 
-    private void findPathsBFS(String beginWord, String endWord)
+    private LinkedList<String> generatePath(Node node)
     {
+        LinkedList<String> path = null;
+        if (node.parent == null)
+        {
+            path = new LinkedList<>();
+            path.addLast(node.word);
+            return path;
+        }
+        else
+        {
+            path = generatePath(node.parent);
+            path.addLast(node.word);
+            return path;
+        }
+
+    }
+
+    private int getDepth(Node node)
+    {
+        if (node.parent == null)
+            return 1;
+        else
+            return getDepth(node.parent) + 1;
+    }
+
+    private int hashOfPath(List<String> path)
+    {
+        StringBuilder stringBuilder = new StringBuilder();
+
+        Iterator<String> iterator = path.iterator();
+        while (iterator.hasNext())
+        {
+            stringBuilder.append(iterator.next()).append("-");
+        }
+        return stringBuilder.toString().hashCode();
+    }
+
+    private void registerVisit(Map<String,Set<Integer>> visits, String word, List<String> path)
+    {
+        if (visits.containsKey(word))
+        {
+            int hashOfPath = hashOfPath(path);
+            visits.get(word).add(hashOfPath);
+        }
+        else
+        {
+            Set<Integer> set = new HashSet<>();
+            set.add(hashOfPath(path));
+            visits.put(word,set);
+        }
+    }
+
+    private boolean checkVisit(Map<String,Set<Integer>> visits, String word, List<String> path)
+    {
+        int hashOfPath = hashOfPath(path);
+        return visits.containsKey(word) && visits.get(word).contains(hashOfPath);
+    }
+
+    private List<List<String>> findPathsBFS(String beginWord, String endWord)
+    {
+        Map<String,Set<Integer>> visits = new HashMap<>();
         Queue<Node> queue = new LinkedList<>();
+        Set<String> openWords = new HashSet<>();
         HashSet<String> visitedWords = new HashSet<>();
-        HashMap<String,ArrayList<LinkedList<String>>> paths = new HashMap<>();
+        List<List<String>> pathsFound = new ArrayList<>();
         Node root = new Node(beginWord,null);
         queue.add(root);
         Node parentNode = null;
+        int minPathLength = 999999;
 
         while (!queue.isEmpty())
         {
             Node currentNode = queue.poll();
+            openWords.add(currentNode.word);
             ArrayList<Node> branchNodes = getBranchNodes(currentNode);
             currentNode.branches = branchNodes;
             parentNode = currentNode;
 
+            if (branchNodes == null)
+                continue;
+
             for (Node branch : branchNodes)
             {
-                if (!visitedWords.contains(branch.word))
+                //Check for change in the same index
+                if (currentNode.parent != null)
+                {
+                    int ind1 = getChangedIndex(branch.word,currentNode.word);
+                    int ind0 = getChangedIndex(currentNode.word,currentNode.parent.word);
+
+                    if (ind0 == ind1)
+                        continue;
+                }
+
+                //Check if the node was visited the same way before
+                if (!queue.contains(branch.word) && !openWords.contains(branch.word))
                 {
                     queue.add(branch);
+                    //registerVisit(visits,branch.word,path);
 
                     if (branch.word.equals(endWord))
                     {
-                        int x=0;
-
-                        //System.out.println(getPathView(path));
-
-                    }
-                    else
-                    {
-                        visitedWords.add(branch.word);
+                        LinkedList<String> path = generatePath(branch);
+                        pathsFound.add(path);
+                        minPathLength = path.size() < minPathLength ? path.size() : minPathLength;
                     }
 
                 }
@@ -213,76 +279,15 @@ public class Solution {
 
         }
 
+        //Eliminate longer paths
+        List<List<String>> pathsFinal = new ArrayList<>();
+        for (List<String> path: pathsFound)
+        {
+            if (path.size() <= minPathLength)
+                pathsFinal.add(path);
+        }
+        return pathsFinal;
     }
-
-
-
-
-    private List<List<String>> findPathsDFS(String from, String destination, LinkedList<String> pathPrevious)
-    {
-        List<String> availableNeighbours = getNeighbours(from);
-        List<List<String>> pathsFromMe = new ArrayList<>();
-
-        //Path found
-        if (from.equals(destination))
-        {
-            if (pathPrevious == null)
-            {
-                LinkedList path = new LinkedList();
-                path.add(from);
-                path.add(destination);
-                pathsFromMe.add(path);
-                return pathsFromMe;
-            }
-            else
-            {
-                pathPrevious.addLast(from);
-
-                if (pathPrevious.size() < minLength)
-                    minLength = pathPrevious.size();
-
-                pathsFromMe.add((List)pathPrevious.clone());
-                return pathsFromMe;
-            }
-        }
-        //Dead end
-        else if (availableNeighbours == null)
-        {
-            return pathsFromMe;
-        }
-        //Continue
-        else
-        {
-            if (pathPrevious == null)
-                pathPrevious = new LinkedList<>();
-
-            pathPrevious.add(from);
-
-            for (String neighbour : availableNeighbours)
-            {
-
-                if (pathPrevious != null && pathPrevious.contains(neighbour))
-                    continue;
-
-                else if (pathPrevious.size() == minLength)
-                    break;
-
-
-                List<List<String>> pathsFromNeighbour = findPathsDFS(neighbour,destination,pathPrevious);
-
-                for (List<String> pathFromNeighbour : pathsFromNeighbour)
-                {
-                    pathsFromMe.add(pathFromNeighbour);
-                }
-                if (pathPrevious.size() != 0)
-                    pathPrevious.removeLast();
-            }
-
-            return pathsFromMe;
-        }
-
-    }
-
 
 
     /**
@@ -299,23 +304,7 @@ public class Solution {
 
         generateNeighbours(wordList);
 
-        calculateDistances(wordList,endWord);
-
-        /*List<List<String>> allPaths = findPathsDFS(beginWord,endWord,null);
-
-        List<List<String>> shortestPaths = new ArrayList<>();
-
-        for (List<String> path: allPaths )
-        {
-            if (path.size() <= minLength)
-                shortestPaths.add(path);
-        }
-
-        return shortestPaths;*/
-
-        findPathsBFS(beginWord,endWord);
-
-        return null;
+        return findPathsBFS(beginWord,endWord);
 
     }
 
