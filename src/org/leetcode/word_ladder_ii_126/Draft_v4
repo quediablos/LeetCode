@@ -19,37 +19,14 @@ public class Solution {
 
     public class Node
     {
-        public Node parent;
         public String word;
-        public ArrayList<Node> branches;
+        public ArrayList<Node> neighbours;
 
-        public Node(String word,Node parent)
+        public Node(String word, int numberOfNeighbours)
         {
+            this.neighbours = new ArrayList<>(numberOfNeighbours);
             this.word = word;
-            this.parent = parent;
         }
-        public Node(String word,Node parent, List<String> branchWords)
-        {
-            this.word = word;
-            this.parent = parent;
-
-            branches = new ArrayList<>();
-            for (String branchWord: branchWords)
-            {
-                branches.add(new Node(branchWord,this));
-            }
-        }
-
-       /* @Override
-        public boolean equals(Object obj)
-        {
-            if (!(obj instanceof Node))
-                return false;
-
-            Node other = (Node)obj;
-
-            return other.word.equals(word) &&
-        }*/
     }
 
     public boolean canTransormTo(String source, String destination)
@@ -127,21 +104,6 @@ public class Solution {
         return stringBuilder.toString();
     }
 
-    private ArrayList<Node> getBranchNodes(Node from)
-    {
-        List<String> availableNeighbours = neighbours.get(from.word);
-        ArrayList<Node> branchNodes = new ArrayList<>();
-
-        if (availableNeighbours == null)
-            return null;
-
-        for (String branchWord: availableNeighbours)
-        {
-            branchNodes.add(new Node(branchWord,from));
-        }
-        return branchNodes;
-    }
-
     private List<String> getNeighbours(String from)
     {
         List<String> availableNeighbours = neighbours.get(from);
@@ -168,35 +130,27 @@ public class Solution {
 
     }
 
-    /*private ArrayList<LinkedList<String>> forkPath( HashMap<String,ArrayList<LinkedList<String>>> paths,
-                                                    String endNode, ArrayList<String> childNodes)
-    {
-
-    }*/
-
     private void findPathsBFS(String beginWord, String endWord)
     {
-        Queue<Node> queue = new LinkedList<>();
+        Queue<String> queue = new LinkedList<>();
         HashSet<String> visitedWords = new HashSet<>();
-        HashMap<String,ArrayList<LinkedList<String>>> paths = new HashMap<>();
-        Node root = new Node(beginWord,null);
-        queue.add(root);
-        Node parentNode = null;
+
+        queue.add(beginWord);
 
         while (!queue.isEmpty())
         {
-            Node currentNode = queue.poll();
-            ArrayList<Node> branchNodes = getBranchNodes(currentNode);
-            currentNode.branches = branchNodes;
-            parentNode = currentNode;
+            String current = queue.poll();
 
-            for (Node branch : branchNodes)
+            List<String> availableNeighbours = getNeighbours(current);
+
+            int i=0;
+            for (String neighbour : availableNeighbours)
             {
-                if (!visitedWords.contains(branch.word))
+                if (!visitedWords.contains(neighbour))
                 {
-                    queue.add(branch);
+                    queue.add(neighbour);
 
-                    if (branch.word.equals(endWord))
+                    if (neighbour.equals(endWord))
                     {
                         int x=0;
 
@@ -205,7 +159,7 @@ public class Solution {
                     }
                     else
                     {
-                        visitedWords.add(branch.word);
+                        visitedWords.add(neighbour);
                     }
 
                 }
