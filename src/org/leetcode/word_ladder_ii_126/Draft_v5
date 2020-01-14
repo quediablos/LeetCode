@@ -173,13 +173,13 @@ public class Solution {
         if (node.parent == null)
         {
             path = new LinkedList<>();
-            path.addFirst(node.word);
+            path.addLast(node.word);
             return path;
         }
         else
         {
             path = generatePath(node.parent);
-            path.addFirst(node.word);
+            path.addLast(node.word);
             return path;
         }
 
@@ -220,129 +220,26 @@ public class Solution {
         }
     }
 
-    private boolean checkForIntersection(List<Node> branchList1, List<Node> branchList2)
+    private boolean checkVisit(Map<String,Set<Integer>> visits, String word, List<String> path)
     {
-        for (Node node1: branchList1)
-        {
-            for (Node node2: branchList2)
-            {
-                if (node1.word.equals(node2.word))
-                    return true;
-            }
-        }
-
-        return false;
-    }
-
-    private List<List<String>> findPathsDualBfs(String beginWord, String endWord)
-    {
-        Queue<Node> queueFromStart = new LinkedList<>();
-        Queue<Node> queueFromEnd = new LinkedList<>();
-        Set<String> openWordsFromStart = new HashSet<>();
-        Set<String> openWordsFromEnd = new HashSet<>();
-        List<List<String>> pathsFound = new ArrayList<>();
-        Node rootStart = new Node(beginWord,null);
-        Node rootEnd = new Node(endWord,null);
-
-        queueFromStart.add(rootStart);
-        queueFromEnd.add(rootEnd);
-        int minPathLength = 999999;
-        boolean finish = false;
-
-        //Traversal from begin word
-        while (!queueFromStart.isEmpty() && !queueFromEnd.isEmpty())
-        {
-
-            Node currentNodeFromStart = queueFromStart.poll();
-            Node currentNodeFromEnd = queueFromEnd.poll();
-
-            openWordsFromStart.add(currentNodeFromStart.word);
-            openWordsFromEnd.add(currentNodeFromEnd.word);
-
-            ArrayList<Node> branchNodesFromStart = getBranchNodes(currentNodeFromStart);
-            ArrayList<Node> branchNodesFromEnd = getBranchNodes(currentNodeFromEnd);
-            currentNodeFromStart.branches = branchNodesFromStart;
-            currentNodeFromEnd.branches = branchNodesFromEnd;
-
-            //Check for intersections from both trees.
-            if (checkForIntersection(branchNodesFromStart,branchNodesFromEnd) ||
-                (currentNodeFromEnd.parent != null && checkForIntersection(branchNodesFromStart,currentNodeFromEnd.parent.branches)))
-            {
-                int x=0;
-            }
-
-            //Branches from current from start
-            if (branchNodesFromStart != null)
-            {
-                for (Node branch : branchNodesFromStart)
-                {
-                    //Check for change in the same index
-                    if (currentNodeFromStart.parent != null)
-                    {
-                        int ind1 = getChangedIndex(branch.word,currentNodeFromStart.word);
-                        int ind0 = getChangedIndex(currentNodeFromStart.word,currentNodeFromStart.parent.word);
-
-                        if (ind0 == ind1)
-                            continue;
-                    }
-
-                    //Check if the node was visited the same way before
-                    if (!queueFromStart.contains(branch.word) && !openWordsFromStart.contains(branch.word))
-                    {
-                        queueFromStart.add(branch);
-
-                    }
-
-                }
-            }
-
-            if (branchNodesFromEnd != null)
-            {
-                for (Node branch : branchNodesFromEnd)
-                {
-                    //Check for change in the same index
-                    if (currentNodeFromEnd.parent != null)
-                    {
-                        int ind1 = getChangedIndex(branch.word,currentNodeFromEnd.word);
-                        int ind0 = getChangedIndex(currentNodeFromEnd.word,currentNodeFromEnd.parent.word);
-
-                        if (ind0 == ind1)
-                            continue;
-                    }
-
-                    //Check if the node was visited the same way before
-                    if (!queueFromEnd.contains(branch.word) && !openWordsFromEnd.contains(branch.word))
-                    {
-                        queueFromEnd.add(branch);
-
-                    }
-
-                }
-            }
-
-
-        }
-
-    return pathsFound;
-
+        int hashOfPath = hashOfPath(path);
+        return visits.containsKey(word) && visits.get(word).contains(hashOfPath);
     }
 
     private List<List<String>> findPathsBFS(String beginWord, String endWord)
     {
+        Map<String,Set<Integer>> visits = new HashMap<>();
         Queue<Node> queue = new LinkedList<>();
         Set<String> openWords = new HashSet<>();
+        HashSet<String> visitedWords = new HashSet<>();
         List<List<String>> pathsFound = new ArrayList<>();
-        Node root = new Node(endWord,null);
+        Node root = new Node(beginWord,null);
         queue.add(root);
         Node parentNode = null;
         int minPathLength = 999999;
-        boolean finish = false;
 
         while (!queue.isEmpty())
         {
-            if (finish)
-                break;
-
             Node currentNode = queue.poll();
             openWords.add(currentNode.word);
             ArrayList<Node> branchNodes = getBranchNodes(currentNode);
@@ -351,9 +248,6 @@ public class Solution {
 
             if (branchNodes == null)
                 continue;
-
-            if (!pathsFound.isEmpty() && getDepth(currentNode) + 1 > minPathLength)
-                break;
 
             for (Node branch : branchNodes)
             {
@@ -366,36 +260,33 @@ public class Solution {
                     if (ind0 == ind1)
                         continue;
                 }
-                LinkedList<String> path = generatePath(branch);
-                System.out.println(getPathView(path));
+
                 //Check if the node was visited the same way before
                 if (!queue.contains(branch.word) && !openWords.contains(branch.word))
                 {
                     queue.add(branch);
 
-                    if (branch.word.equals(beginWord))
+                    if (branch.word.equals(endWord))
                     {
-                        //LinkedList<String> path = generatePath(branch);
-
+                        LinkedList<String> path = generatePath(branch);
                         pathsFound.add(path);
-
+                        System.out.println(getPathView(path));
                         minPathLength = path.size() < minPathLength ? path.size() : minPathLength;
                     }
-                }
 
+                }
             }
 
         }
 
         //Eliminate longer paths
-        /*List<List<String>> pathsFinal = new ArrayList<>();
+        List<List<String>> pathsFinal = new ArrayList<>();
         for (List<String> path: pathsFound)
         {
             if (path.size() <= minPathLength)
                 pathsFinal.add(path);
         }
-        return pathsFinal;*/
-        return pathsFound;
+        return pathsFinal;
     }
 
 
@@ -413,7 +304,7 @@ public class Solution {
 
         generateNeighbours(wordList);
 
-        return findPathsDualBfs(beginWord,endWord);
+        return findPathsBFS(beginWord,endWord);
 
     }
 
