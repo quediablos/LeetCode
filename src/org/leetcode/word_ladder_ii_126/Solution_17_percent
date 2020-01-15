@@ -69,6 +69,14 @@ public class Solution {
         neighbours.get(word).add(neigbour);
     }
 
+    private void calculateDistances(List<String> wordList, String endWord)
+    {
+        for (String word: wordList)
+        {
+            distances.put(word,distance(word,endWord));
+        }
+    }
+
     private void generateNeighbours(List<String> wordList)
     {
         for (int i=0; i<wordList.size()-1; i++)
@@ -129,6 +137,31 @@ public class Solution {
         return branchNodes;
     }
 
+    private List<String> getNeighbours(String from)
+    {
+        List<String> availableNeighbours = neighbours.get(from);
+
+        if (availableNeighbours == null)
+            return null;
+
+
+        //Include the neighbours with min distance
+        int distanceMin = 9999999;
+
+        for (int i=0; i<availableNeighbours.size(); i++)
+        {
+            if (distances.get(availableNeighbours.get(i)) < distanceMin)
+                distanceMin = distances.get(availableNeighbours.get(i));
+        }
+
+        for (int i=0; i<availableNeighbours.size(); i++)
+        {
+            if (distances.get(availableNeighbours.get(i)) > distanceMin)
+                availableNeighbours.remove(i);
+        }
+        return availableNeighbours;
+
+    }
 
     private int getChangedIndex(String word1, String word2)
     {
@@ -248,12 +281,6 @@ public class Solution {
         return pathsFound;
     }
 
-    /**
-     * Not finished yet
-     * @param beginWord
-     * @param endWord
-     * @return
-     */
     private List<List<String>> findPathsDualBfs(String beginWord, String endWord)
     {
         Queue<Node> queueFromStart = new LinkedList<>();
@@ -353,15 +380,21 @@ public class Solution {
         List<List<String>> pathsFound = new ArrayList<>();
         Node root = new Node(beginWord,null);
         queue.add(root);
+        Node parentNode = null;
         int minPathLength = 999999;
+        boolean finish = false;
+
 
         while (!queue.isEmpty())
         {
+            if (finish)
+                break;
 
             Node currentNode = queue.poll();
             openWords.add(currentNode.word);
             ArrayList<Node> branchNodes = getBranchNodes(currentNode);
             currentNode.branches = new ArrayList<>();
+            parentNode = currentNode;
 
             if (branchNodes == null)
                 continue;
@@ -380,11 +413,12 @@ public class Solution {
                     if (ind0 == ind1)
                         continue;
                 }
-
+                //System.out.println(getPathView(path));
                 //Check if the node was visited the same way before
                 if (!openWords.contains(branch.word))
                 {
                     queue.add(branch);
+                    currentNode.branches.add(branch);
 
                     if (branch.word.equals(endWord))
                     {
@@ -400,6 +434,14 @@ public class Solution {
 
         }
 
+        //Eliminate longer paths
+        /*List<List<String>> pathsFinal = new ArrayList<>();
+        for (List<String> path: pathsFound)
+        {
+            if (path.size() <= minPathLength)
+                pathsFinal.add(path);
+        }
+        return pathsFinal;*/
         return pathsFound;
     }
 
@@ -418,6 +460,7 @@ public class Solution {
 
         generateNeighbours(wordList);
 
+        //return findPathsDualBfs(beginWord,endWord);
         return findPathsBFS(beginWord,endWord);
 
     }
