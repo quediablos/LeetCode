@@ -215,18 +215,18 @@ public class Solution {
     }
 
 
-    private List<List<String>> findPathsViaIntersections(LinkedList<Node> visitedNodesFromStart,LinkedList<Node> visitedNodesFromEnd )
+    private List<List<String>> findPathsViaIntersections(List<Node> visitedNodesFromStart,List<Node> visitedNodesFromEnd )
     {
         List<List<String>> pathsFound = new ArrayList<>();
 
         //Active queues
-        Iterator<Node> iteratorFromStart = visitedNodesFromStart.descendingIterator();
+        Iterator<Node> iteratorFromStart = visitedNodesFromStart.iterator();
 
         while(iteratorFromStart.hasNext())
         {
             Node nodeFromStart = iteratorFromStart.next();
 
-            Iterator<Node> iteratorFromEnd = visitedNodesFromEnd.descendingIterator();
+            Iterator<Node> iteratorFromEnd = visitedNodesFromEnd.iterator();
 
             while (iteratorFromEnd.hasNext())
             {
@@ -235,11 +235,11 @@ public class Solution {
                 //intersection
                 if (nodeFromStart.word.equals(nodeFromEnd.word))
                 {
-                    LinkedList<String> pathFromStart = generatePath(nodeFromStart,-1);
-                    LinkedList<String> pathFromEnd = generatePath(nodeFromEnd.parent,1);
+                    LinkedList<String> pathFromStart = generatePath(nodeFromStart,1);
+                    LinkedList<String> pathFromEnd = generatePath(nodeFromEnd.parent,-1);
 
                     //merge paths
-                    mergeSecondPath(pathFromStart,pathFromEnd);
+                    mergeSecondPath(pathFromEnd,pathFromStart);
                     pathsFound.add(pathFromStart);
                 }
             }
@@ -257,7 +257,9 @@ public class Solution {
     private List<List<String>> findPathsDualBfs(String beginWord, String endWord)
     {
         Queue<Node> queueFromStart = new LinkedList<>();
+        LinkedList<Integer> levelsFromStart = new LinkedList<>();
         Queue<Node> queueFromEnd = new LinkedList<>();
+        LinkedList<Integer> levelsFromEnd = new LinkedList<>();
         Set<String> openWordsFromStart = new HashSet<>();
         Set<String> openWordsFromEnd = new HashSet<>();
         List<List<String>> pathsFound = new ArrayList<>();
@@ -266,45 +268,59 @@ public class Solution {
         LinkedList<Node> visitedNodesFromStart = new LinkedList<>();
         LinkedList<Node> visitedNodesFromEnd = new LinkedList<>();
 
+
         queueFromStart.add(rootStart);
         queueFromEnd.add(rootEnd);
+        levelsFromStart.add(1);
+        levelsFromEnd.add(1);
+
         int minPathLength = 999999;
         boolean finish = false;
 
         while (!queueFromStart.isEmpty() && !queueFromEnd.isEmpty())
         {
 
-            Node currentNodeFromStart = queueFromStart.poll();
-            Node currentNodeFromEnd = queueFromEnd.poll();
+            Node currentNodeFromStart = queueFromStart.peek();
+            Node currentNodeFromEnd = queueFromEnd.peek();
 
             openWordsFromStart.add(currentNodeFromStart.word);
             openWordsFromEnd.add(currentNodeFromEnd.word);
 
+            //Find the branches
             ArrayList<Node> branchNodesFromStart = getBranchNodes(currentNodeFromStart);
             ArrayList<Node> branchNodesFromEnd = getBranchNodes(currentNodeFromEnd);
             currentNodeFromStart.branches = new ArrayList<>();
             currentNodeFromEnd.branches = new ArrayList<>();
+
+            //Check if the current level is finished.
+            int currentLevel = levelsFromStart.getFirst() + 1;
+
+            //Current level finished.
+            if (/*levelsFromStart.getFirst().equals(levelsFromStart.getLast()) ||
+                levelsFromEnd.getFirst().equals(levelsFromEnd.getLast())*/true)
+            {
+                List<List<String>> paths1 = findPathsViaIntersections((List)queueFromStart,(List)queueFromEnd);
+                //List<List<String>> paths2 = findPathsViaIntersections(branchNodesFromEnd,(List)queueFromStart);
+                if (!paths1.isEmpty())
+                {
+
+                    return paths1;
+                }
+            }
 
             //Branches from current from start
             if (branchNodesFromStart != null)
             {
                 for (Node branch : branchNodesFromStart)
                 {
-                    //Check for change in the same index
-                    if (currentNodeFromStart.parent != null)
-                    {
-                        int ind1 = getChangedIndex(branch.word,currentNodeFromStart.word);
-                        int ind0 = getChangedIndex(currentNodeFromStart.word,currentNodeFromStart.parent.word);
-
-                        if (ind0 == ind1)
-                            continue;
-                    }
 
                     //Check if the node was visited the same way before
-                    if (!queueFromStart.contains(branch.word) && !openWordsFromStart.contains(branch.word))
+                    if (!openWordsFromStart.contains(branch.word))
                     {
+                        //TODO:do not add terminal nodes to the queue.
                         queueFromStart.add(branch);
-                        currentNodeFromStart.branches.add(branch);
+                        levelsFromStart.addLast(currentLevel);
+                        //currentNodeFromStart.branches.add(branch);
                         visitedNodesFromStart.addLast(branch);
 
                     }
@@ -316,29 +332,25 @@ public class Solution {
             {
                 for (Node branch : branchNodesFromEnd)
                 {
-                    //Check for change in the same index
-                    if (currentNodeFromEnd.parent != null)
-                    {
-                        int ind1 = getChangedIndex(branch.word,currentNodeFromEnd.word);
-                        int ind0 = getChangedIndex(currentNodeFromEnd.word,currentNodeFromEnd.parent.word);
-
-                        if (ind0 == ind1)
-                            continue;
-                    }
-
                     //Check if the node was visited the same way before
-                    if (!queueFromEnd.contains(branch.word) && !openWordsFromEnd.contains(branch.word))
+                    if (!openWordsFromEnd.contains(branch.word))
                     {
                         queueFromEnd.add(branch);
-                        currentNodeFromEnd.branches.add(branch);
+                        levelsFromEnd.addLast(currentLevel);
+                        //currentNodeFromEnd.branches.add(branch);
                         visitedNodesFromEnd.addLast(branch);
                     }
 
                 }
             }
 
+            queueFromStart.poll();
+            queueFromEnd.poll();
+            levelsFromStart.poll();
+            levelsFromEnd.poll();
+
             //Check for paths via intersections
-            pathsFound.addAll(findPathsViaIntersections(visitedNodesFromStart,visitedNodesFromEnd));
+            //pathsFound.addAll(findPathsViaIntersections(visitedNodesFromStart,visitedNodesFromEnd));
 
         }
 
@@ -371,16 +383,6 @@ public class Solution {
 
             for (Node branch : branchNodes)
             {
-                //Check for change in the same index
-                if (currentNode.parent != null)
-                {
-                    int ind1 = getChangedIndex(branch.word,currentNode.word);
-                    int ind0 = getChangedIndex(currentNode.word,currentNode.parent.word);
-
-                    if (ind0 == ind1)
-                        continue;
-                }
-
                 //Check if the node was visited the same way before
                 if (!openWords.contains(branch.word))
                 {
@@ -419,6 +421,7 @@ public class Solution {
         generateNeighbours(wordList);
 
         return findPathsBFS(beginWord,endWord);
+        //return findPathsDualBfs(beginWord,endWord);
 
     }
 
