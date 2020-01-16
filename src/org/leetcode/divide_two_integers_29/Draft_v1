@@ -3,55 +3,38 @@ package org.leetcode.divide_two_integers_29;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static java.lang.Integer.MAX_VALUE;
-import static java.lang.Integer.MIN_VALUE;
-
 public class Solution {
 
     private static int quotient = 0;
     private static int remainder = 1;
 
-
-
     private int checkForOverflows(int dividend, int divisor)
     {
-         if (dividend == MIN_VALUE)
-         {
-             if (divisor == MIN_VALUE)
-                 return 1;
-             else if (divisor == -1)
-                 return MAX_VALUE;
-             else if (divisor == 1)
-                 return MIN_VALUE;
-             else if (divisor == MAX_VALUE)
-                 return -1;
-             else
-                 return 5;
-         }
-         else if (dividend == MAX_VALUE)
-         {
-             if (divisor == MIN_VALUE)
-                 return 0;
-             else if (divisor == -1)
-                 return MIN_VALUE + 1;
-             else if (divisor == 1)
-                 return MAX_VALUE;
-             else if (divisor == MAX_VALUE)
-                 return 1;
-             else
-                 return 5;
-         }
-         else if (divisor == Integer.MIN_VALUE || divisor == Integer.MAX_VALUE)
-             return 0;
 
+        if (Math.abs(divisor) > 1)
+        {
+            return -1;
+        }
+        else if (dividend == Integer.MAX_VALUE)
+        {
+            return divisor > 0 ? dividend : -dividend;
+        }
+        else if (dividend == Integer.MIN_VALUE)
+        {
+            return divisor > 0 ? dividend : Integer.MAX_VALUE;
+        }
+        else
+        {
+            return -1;
+        }
 
-        return 5;
     }
 
     private int[] checkEdgeCases(int dividend, int divisor)
     {
         int[] result = new int[] {-1,-1};
 
+        //Edge cases
         if (dividend == 0)
         {
             result[quotient] = 0;
@@ -69,7 +52,7 @@ public class Solution {
             result[remainder] = 0;
             return result;
         }
-        else if (Math.abs(dividend) < Math.abs(divisor))
+        else if (dividend < divisor)
         {
             result[quotient] = 0;
             result[remainder] = 0;
@@ -78,9 +61,37 @@ public class Solution {
 
         return result;
     }
+    
+    private String checkEdgeCases(String dividendStr, String divisorStr)
+    {
 
+        //Edge cases
+        if (dividendStr.equals("0"))
+        {
+            return "0";
+        }
+        else if (divisorStr.equals("1"))
+        {
+            return dividendStr;
+        }
+        else if (dividendStr == divisorStr)
+        {
+            return "1";
+        }
+        else
+        {
+            int dividend = Integer.parseInt(dividendStr);
+            int divisor = Integer.parseInt(divisorStr);
 
+            if (dividend < divisor)
+            {
+                return "0";
+            }
 
+        }
+
+        return null;
+    }
 
     //Divide two numbers which are close iteratively by subtraction.
     public int[] divideSmall(int dividend, int divisor)
@@ -120,27 +131,24 @@ public class Solution {
         }
     }
 
-    private int boostFromQuotient(StringBuilder remainderSeries, String dividendSeries, StringBuilder quotient, int divisor,
-                                  AtomicInteger indexDividend, boolean boostedQuotientWithZeros)
+    private int boostFromQuotient(StringBuilder remainderSeries, String dividendSeries, int divisor, AtomicInteger indexDividend)
     {
         int subDividend = 0;
-        boolean firstTake = true;
-
-
         while (true)
         {
-            if (indexDividend.intValue() == dividendSeries.length())
-            {
-                quotient.append('0');
-                return -1;
-            }
-
-            remainderSeries.append(dividendSeries.charAt(indexDividend.incrementAndGet()));
             subDividend = Integer.parseInt(remainderSeries.toString());
 
             if (subDividend <= divisor)
             {
-               continue;
+                if (indexDividend.intValue() == dividendSeries.length())
+                {
+                    return -1;
+                }
+                else
+                {
+                    remainderSeries.append(dividendSeries.charAt(indexDividend.getAndIncrement()));
+                    continue;
+                }
             }
             else
             {
@@ -149,15 +157,6 @@ public class Solution {
         }
 
     }
-
-    private String abs(String val)
-    {
-        if (val.charAt(0) == '-')
-            return val.substring(1,val.length());
-        else
-            return val;
-    }
-
 
     /**
      * Interface method.
@@ -168,30 +167,39 @@ public class Solution {
     public int divide(int dividend, int divisor)
     {
 
-        //Check for overflow cases.
-        int overflow = checkForOverflows(dividend,divisor);
-
-        if (overflow != 5)
-            return overflow;
-
         //determine Quotient sign.
         int sign = ((dividend > 0 && divisor > 0) || (dividend < 0 && divisor < 0)) ? 1 : -1;
 
-        //Set absolute value of divisor.
-        divisor = Math.abs(divisor);
+        //Check for overflow cases
+        int resultOverflow;
+
+        if ((resultOverflow = checkForOverflows(dividend,divisor)) != -1)
+            return resultOverflow;
 
         //Convert dividend to string.
-        String dividendStr = abs(Integer.toString(dividend));
-        StringBuilder remainder = new StringBuilder("");
-        StringBuilder quotientStr = new StringBuilder("");
+        String dividendSeries = Integer.toString(dividend);
+
+        //Assign absolute values
+        dividend = Math.abs(dividend) >= 0 ? Math.abs(dividend) : Integer.MAX_VALUE;
+        divisor = Math.abs(divisor) >= 0 ? Math.abs(divisor) : Integer.MAX_VALUE;
+
+        //Check for edge cases
+        int[] edgeCases = checkEdgeCases(dividendSeries,divisor);
+
+        if (edgeCases[quotient] != -1)
+            return sign == -1 ? -edgeCases[quotient] : edgeCases[quotient];
+
+
+        StringBuilder remainderSeries = new StringBuilder("");
+        StringBuilder quotientSeries = new StringBuilder("");
         AtomicInteger indexDividend = new AtomicInteger(0);
         int subDividend = 0;
 
         //Take to first sub dividend
         StringBuilder subDividendStr = new StringBuilder("");
-        for (int i=0; i<dividendStr.length();i++)
+        for (int i=0; i<dividendSeries.length();i++)
         {
-            subDividendStr.append(dividendStr.charAt(i));
+            subDividendStr.append(dividendSeries.charAt(i));
 
             if ((subDividend = Integer.parseInt(subDividendStr.toString())) > divisor)
             {
@@ -204,33 +212,31 @@ public class Solution {
         {
             int[] subResult = divideSmall(subDividend,divisor);
 
-            quotientStr.append(subResult[Solution.quotient]);
-            remainder = new StringBuilder("");
-            remainder.append(subResult[Solution.remainder]);
+            quotientSeries.append(subResult[quotient]);
+            remainderSeries = new StringBuilder("");
+            remainderSeries.append(subResult[remainder]);
 
-            if (indexDividend.intValue() == dividendStr.length())
+            if (indexDividend.intValue() == dividendSeries.length())
                 break;
 
             //Boost the remainder while also appending zeros to the quotient.
-            boolean boostedQuotientWithZeros = false;
-            if (subResult[Solution.remainder] == 0 && dividendStr.charAt(indexDividend.intValue()) == '0')
+            if (subResult[remainder] == 0 && dividendSeries.charAt(indexDividend.intValue()) == '0')
             {
-                boostQuotientWithZeros(dividendStr,quotientStr,indexDividend);
-                boostedQuotientWithZeros = true;
+                boostQuotientWithZeros(dividendSeries,quotientSeries,indexDividend);
             }
 
             //No more numbers in the dividend.
-            if (indexDividend.intValue() == dividendStr.length()-1)
+            if (indexDividend.intValue() == dividendSeries.length())
                 break;
 
             //Boost the remainder series until it's big enough to be divided into divisor again.
-            subDividend = boostFromQuotient(remainder,dividendStr, quotientStr,divisor,indexDividend,boostedQuotientWithZeros);
+            subDividend = boostFromQuotient(remainderSeries,dividendSeries,divisor,indexDividend);
 
             if (subDividend == -1)
                 break;
         }
 
-        int quotient = Integer.parseInt(quotientStr.toString());
+        int quotient = Integer.parseInt(quotientSeries.toString());
 
         return sign == -1 ? -quotient : quotient;
 
