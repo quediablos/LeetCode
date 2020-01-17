@@ -11,16 +11,6 @@ public class Solution {
     private static int quotient = 0;
     private static int remainder = 1;
 
-    public class MutableInt
-    {
-        public int val;
-
-        public MutableInt(int val)
-        {
-            this.val = val;
-        }
-    }
-
     private int checkForOverflows(int dividend, int divisor)
     {
          if (dividend == MIN_VALUE)
@@ -88,6 +78,8 @@ public class Solution {
     }
 
 
+
+
     //Divide two numbers which are close iteratively by subtraction.
     public int[] divideSmall(int dividend, int divisor)
     {
@@ -109,24 +101,24 @@ public class Solution {
     }
 
 
-    private int boostFromQuotient(StringBuilder remainderSeries, String dividendSeries, int[] quotientArr, MutableInt quotientInd, int divisor,
-                                  MutableInt indexDividend)
+    private int boostFromQuotient(StringBuilder remainderSeries, String dividendSeries, StringBuilder quotient, int divisor,
+                                  AtomicInteger indexDividend, boolean boostedQuotientWithZeros)
     {
         int subDividend = 0;
 
         while (true)
         {
-            if (indexDividend.val == dividendSeries.length())
+            if (indexDividend.intValue() == dividendSeries.length())
                 return -1;
 
 
-            remainderSeries.append(dividendSeries.charAt(indexDividend.val++));
+            remainderSeries.append(dividendSeries.charAt(indexDividend.getAndIncrement()));
             subDividend = parse(remainderSeries.toString());
 
             if (subDividend < divisor)
             {
                if (true)
-                   quotientArr[quotientInd.val++] = 0;
+                   quotient.append('0');
                continue;
             }
             else
@@ -177,9 +169,8 @@ public class Solution {
         //Convert dividend to string.
         String dividendStr = abs(Integer.toString(dividend));
         StringBuilder remainderStr = new StringBuilder("");
-        int[] quotientArr = new int[] {0,0,0,0,0,0,0,0,0,0};
-        MutableInt quotientInd = new MutableInt(0);
-        MutableInt indexDividend = new MutableInt(0);
+        StringBuilder quotientStr = new StringBuilder("");
+        AtomicInteger indexDividend = new AtomicInteger(0);
         int subDividend = 0;
 
         //Take to first sub dividend
@@ -190,7 +181,7 @@ public class Solution {
 
             if ((subDividend = parse(subDividendStr.toString())) >= divisor)
             {
-                indexDividend.val = i + 1;
+                indexDividend = new AtomicInteger(i+1);
                 break;
             }
         }
@@ -199,19 +190,22 @@ public class Solution {
         {
             int[] subResult = divideSmall(subDividend,divisor);
 
-            //quotientArr.append(subResult[Solution.quotient]);
-            quotientArr[quotientInd.val++] = subResult[Solution.quotient];
+            quotientStr.append(subResult[Solution.quotient]);
             remainderStr = new StringBuilder("");
             remainderStr.append(subResult[Solution.remainder]);
 
+            //No more numbers in the dividend.
+            if (indexDividend.intValue() == dividendStr.length() && subResult[remainder] == 0)
+                break;
+
             //Boost the remainder series until it's big enough to be divided into divisor again.
-            subDividend = boostFromQuotient(remainderStr,dividendStr, quotientArr,quotientInd, divisor,indexDividend);
+            subDividend = boostFromQuotient(remainderStr,dividendStr, quotientStr,divisor,indexDividend,false);
 
             if (subDividend == -1)
                 break;
         }
 
-        int quotient = parse(quotientArr.toString());
+        int quotient = parse(quotientStr.toString());
 
         return sign == -1 ? -quotient : quotient;
 

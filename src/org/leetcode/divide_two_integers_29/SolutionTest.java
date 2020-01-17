@@ -3,6 +3,8 @@ package org.leetcode.divide_two_integers_29;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import static org.junit.Assert.assertTrue;
 
 public class SolutionTest {
@@ -56,6 +58,39 @@ public class SolutionTest {
     {
         Solution solution = new Solution();
         assertTrue(solution.divide(2147483647,-1) == -2147483647);
+    }
+
+    @Test
+    public void performance_1()
+    {
+        Solution solution = new Solution();
+        long t0 = System.nanoTime();
+
+        for (int i=1; i<= 1000; i++)
+        {
+            assertTrue(solution.divide(-2147483648,-1017100424) == 2);
+        }
+
+        long t1 = System.nanoTime() - t0;
+
+        assertTrue((t1 / 1_000l) < 6_000l);
+    }
+
+    @Test
+    public void test_AtomicInteger()
+    {
+        AtomicInteger atomicInteger = new AtomicInteger();
+
+        for (int i=1; i<= 1_000_000; i++)
+            atomicInteger.incrementAndGet();
+    }
+
+    @Test
+    public void test_int()
+    {
+        int k = 0;
+        for (int i=1; i<= 1_000_000; i++)
+            k++;
     }
 
     /************************* Leet code cases **********************/
@@ -118,5 +153,11 @@ public class SolutionTest {
         assertTrue(solution.divide(-1_060_849_722,99_958_928) == -10);
     }
 
+    @Test
+    public void test_576()
+    {
+        Solution solution = new Solution();
+        assertTrue(solution.divide(-2147483648,-1017100424) == 2);
+    }
 
 }
