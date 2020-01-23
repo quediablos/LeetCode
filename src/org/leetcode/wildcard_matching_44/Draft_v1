@@ -12,19 +12,8 @@ public class Solution
         if (p.equals("*"))
             return true;
 
+
         return false;
-    }
-
-    /**
-     * Simplifies the wildcard removing extra *s
-     * @param wildcard
-     * @return
-     */
-    private String simplifyWildcard(String wildcard)
-    {
-        StringBuilder wildcardSimplified = new StringBuilder();
-
-        return wildcardSimplified.toString();
     }
 
     public List<String> divideIntoSequences(String p)
@@ -32,6 +21,7 @@ public class Solution
         List<String> sequenceList = new LinkedList<>();
         StringBuilder sequence = new StringBuilder();
         boolean startedSequence = false;
+        char initialChar = '-';
 
         for (int i=0; ;i++)
         {
@@ -40,6 +30,9 @@ public class Solution
             //last character
             if (i == p.length() - 1)
             {
+                if (initialChar == '*')
+                    sequence.append(initialChar);
+
                 sequence.append(character);
                 sequenceList.add(sequence.toString());
                 return sequenceList;
@@ -48,23 +41,15 @@ public class Solution
             {
                 if (startedSequence)
                 {
-                    if (p.charAt(i-1) != '*')
-                    {
-                        startedSequence = false;
-                        sequence.append(character);
-                        sequenceList.add(sequence.toString());
-                        sequence = new StringBuilder();
-                        i--;
-                    }
-                    else
-                    {
-                        continue;
-                    }
+                    startedSequence = false;
+                    initialChar = '*';
+                    sequence.append(character);
+                    sequenceList.add(sequence.toString());
+                    sequence = new StringBuilder();
                 }
                 else
                 {
-                    sequence.append(character);
-                    startedSequence = true;
+                    initialChar = '*';
                 }
 
                 continue;
@@ -78,6 +63,9 @@ public class Solution
                 }
                 else
                 {
+                    if (initialChar == '*')
+                        sequence.append(initialChar);
+
                     sequence.append(character);
                     startedSequence = true;
                 }
@@ -138,10 +126,6 @@ public class Solution
             if (sequence.charAt(sequence.length()-1) != '*')
             {
                 int startString = string.length()-sequence.length()+1;
-
-                //no more characters left.
-                if (start + sequence.length()-1 > string.length())
-                    return -1;
 
                 return compare(string,startString,string.length()-1,sequence,1) ? string.length(): -1;
             }
