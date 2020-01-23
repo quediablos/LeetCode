@@ -75,7 +75,7 @@ public class SolutionTest
     {
         Solution solution = new Solution();
 
-        assertTrue(solution.compare("abcdef",2,3,"c?asd",0));
+        assertTrue(solution.compare("abcdef",2,3,"c?asd",0) == );
         assertTrue(solution.compare("abcdef",2,3,"???",0));
     }
 
@@ -113,6 +113,35 @@ public class SolutionTest
         assertTrue((new Solution()).isMatch("aaaafffbfff","***a**b**"));
     }
 
+    @Test
+    public void testCustom_4()
+    {
+        assertTrue((new Solution()).isMatch("aaaafffbfff","******"));
+    }
+
+    @Test
+    public void testCustom_5()
+    {
+        assertFalse((new Solution()).isMatch("","a"));
+    }
+
+    @Test
+    public void testCustom_6()
+    {
+        assertTrue((new Solution()).isMatch("a","a"));
+    }
+
+    @Test
+    public void testCustom_7()
+    {
+        assertFalse((new Solution()).isMatch("a","b"));
+    }
+
+    @Test
+    public void testCustom_8()
+    {
+        assertFalse((new Solution()).isMatch("a",""));
+    }
 
     /*************************** LC cases ******************************/
 
@@ -156,5 +185,17 @@ public class SolutionTest
     public void test_19()
     {
         assertTrue((new Solution()).isMatch("aaaa","***a"));
+    }
+
+    @Test
+    public void test_20()
+    {
+        assertTrue((new Solution()).isMatch("",""));
+    }
+
+    @Test
+    public void test_53()
+    {
+        assertFalse((new Solution()).isMatch("a","ab*"));
     }
 }
