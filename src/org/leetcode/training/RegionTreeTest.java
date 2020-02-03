@@ -15,11 +15,66 @@ public class RegionTreeTest
         RegionTree regionTree = new RegionTree();
         Node root = null;
         root = regionTree.insert(root,0,0,3,3);
-        root = regionTree.insert(root,-5,-2,10,0);
-        root = regionTree.insert(root,5,5,7,7);
-        root = regionTree.insert(root,1,1,1,1);
+        regionTree.insert(root,-5,-2,0,4);
+        regionTree.insert(root,-8,-4,-5,-2);
+        regionTree.insert(root,-2,4,3,6);
+        regionTree.insert(root,-7,3,-4,6);
 
-        Node newNode = new Node(4,4,6,6);
+        Node newNode = new Node(-7,3,-4,6);
+        assertTrue(regionTree.overlapSearch(root, newNode));
+
+        int x=0;
+
+    }
+
+    @Test
+    public void test_2()
+    {
+        RegionTree regionTree = new RegionTree();
+        Node root = null;
+
+        for (int x= -2; x<= 1; x++)
+        {
+            for (int y=-2; y<=1; y++)
+            {
+                try {
+                    root = regionTree.insert(root,x,y,x+1,y+1);
+                }
+                catch (Error e)
+                {
+                    x =0;
+                }
+            }
+        }
+
+        Node newNode = new Node(1,1,2,2);
+        assertTrue(regionTree.overlapSearch(root, newNode));
+
+        int x=0;
+
+    }
+
+    @Test
+    public void test_3()
+    {
+        RegionTree regionTree = new RegionTree();
+        Node root = null;
+
+        for (int x= -250; x<= 249; x++)
+        {
+            for (int y=-5; y<=4; y++)
+            {
+                try {
+                    root = regionTree.insert(root,x,y,x+1,y+1);
+                }
+                catch (Error e)
+                {
+                    x =0;
+                }
+            }
+        }
+
+        Node newNode = new Node(100,0,101,1);
         assertTrue(regionTree.overlapSearch(root, newNode));
 
         int x=0;

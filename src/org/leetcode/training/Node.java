@@ -19,4 +19,14 @@ public class Node
         this.maxX = highX;
         this.maxY = highY;
     }
+
+    @Override
+    public String toString() {
+        return "Node{" +
+                "lowX=" + lowX +
+                ", lowY=" + lowY +
+                ", highX=" + highX +
+                ", highY=" + highY +
+                '}';
+    }
 }
