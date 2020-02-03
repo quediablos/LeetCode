@@ -1,0 +1,221 @@
+package org.leetcode.perfect_rectangle_391;
+
+import java.util.HashMap;
+import java.util.Map;
+
+public class Solution
+{
+    private static int SEGMENT_SIZE_LONG = 64;
+    private static long FULL_SEGMENT_LONG = -1;
+    private static long EMPTY_SEGMENT_LONG = 0l;
+
+    private Map<Integer,Map<Integer,Long>> areas = new HashMap<>();
+    private long areaGross = 0l;
+
+    int minX = Integer.MAX_VALUE;
+    int minY = Integer.MAX_VALUE;
+    int maxX = -1;
+    int maxY = -1;
+
+    private void printSegment(long segment)
+    {
+        StringBuilder stringBuilder = new StringBuilder();
+        for(int i= 1; i<= SEGMENT_SIZE_LONG; i++)
+        {
+            stringBuilder.append(segment % 2);
+            segment >>>= 1;
+        }
+
+        System.out.print(stringBuilder.reverse().toString());
+    }
+
+    private void printAreas()
+    {
+        for (Integer level : areas.keySet())
+        {
+            Map<Integer,Long> segments = areas.get(level);
+
+            for (Integer segment : segments.keySet())
+            {
+                System.out.print("L:"+level+" S:"+segment+" ");
+                printSegment(segments.get(segment));
+                System.out.print(" + ");
+            }
+            System.out.println("");
+        }
+    }
+
+    private void updateEdgeValues(int x1,int y1,int x2,int y2)
+    {
+        if (x1 < minX)
+            minX = x1;
+        if (y1 < minY)
+            minY = y1;
+        if (x2 > maxX)
+            maxX = x2;
+        if (y2 > maxY)
+            maxY = y2;
+    }
+
+    private boolean saveRectangle(int x1,int y1,int x2,int y2)
+    {
+        int firstLevel = y1;
+        int lastLevel = y2-1;
+
+        int[] segmentRange = findSegmentRangeOfRectangle(x1,y1);
+        int firstSegment = segmentRange[0];
+        int lastSegment = segmentRange[1];
+
+        long [] rectangleInBits = representRectangleInBits(x1,x2);
+
+        //for each level
+        for (int level = firstLevel; level <= lastLevel; level++)
+        {
+            Map<Integer,Long> segmentsOfLevel;
+            if (!areas.containsKey(level))
+            {
+                segmentsOfLevel = new HashMap<>();
+                areas.put(level,segmentsOfLevel);
+            }
+            else
+            {
+                segmentsOfLevel = areas.get(level);
+            }
+
+            //for each segment for that level
+            for (int segment = firstSegment; segment <= lastSegment; segment++)
+            {
+                if (!segmentsOfLevel.containsKey(segment))
+                {
+                    segmentsOfLevel.put(segment,rectangleInBits[segment-firstSegment]);
+                }
+                else
+                {
+                    long existingSegment = segmentsOfLevel.get(segment);
+                    long newSegment = rectangleInBits[segment-firstSegment];
+
+                    //Check for overlapping
+                    if ((existingSegment & newSegment) != EMPTY_SEGMENT_LONG)
+                        return false;
+
+                    //merge both segments.
+                    existingSegment |= newSegment;
+                    segmentsOfLevel.replace(segment,existingSegment);
+                }
+            }
+        }
+
+        return true;
+    }
+
+    private int[] findSegmentRangeOfRectangle(int x1, int x2)
+    {
+        int[] segmentRange = new int[2];
+        segmentRange[0] = x1 / SEGMENT_SIZE_LONG;
+        segmentRange[1] = x2 / SEGMENT_SIZE_LONG;
+        return segmentRange;
+    }
+
+    public long[] representRectangleInBits(int x1, int x2)
+    {
+        int [] segmentRange = findSegmentRangeOfRectangle(x1,x2);
+        int firstSegmentInd = segmentRange[0];
+        int lastSegmentInd = segmentRange[1];
+        long[] segments = new long[lastSegmentInd-firstSegmentInd+1];
+
+        for (int i=firstSegmentInd; i<=lastSegmentInd; i++)
+        {
+            int rightShift = x1;
+            int leftShift = SEGMENT_SIZE_LONG-(x2-SEGMENT_SIZE_LONG * i);
+
+            //Only one segment
+            if (i == firstSegmentInd && i == lastSegmentInd)
+            {
+                segments[i-firstSegmentInd] = FULL_SEGMENT_LONG >>> leftShift+rightShift;
+                segments[i-firstSegmentInd] <<= leftShift;
+            }
+            else if (i == firstSegmentInd)
+            {
+                segments[i-firstSegmentInd] = FULL_SEGMENT_LONG >>> rightShift;
+            }
+            else if (i == lastSegmentInd)
+            {
+                segments[i-firstSegmentInd] = FULL_SEGMENT_LONG << leftShift-1;
+            }
+            else
+            {
+                segments[i-firstSegmentInd] = FULL_SEGMENT_LONG;
+            }
+        }
+
+        return segments;
+    }
+
+    private boolean checkTotalArea()
+    {
+        //Check number of levels
+        if (areas.size() != maxY-minY)
+            return false;
+
+        //Check number of segments for each level.
+        int [] segmentRange = findSegmentRangeOfRectangle(minX,maxX);
+
+        //Check if each segment is full.
+        long [] rectanglePerLevel = representRectangleInBits(minX,maxX);
+        for (Integer level : areas.keySet())
+        {
+            Map<Integer,Long> segments = areas.get(level);
+
+            for (int i=0; i<rectanglePerLevel.length; i++)
+            {
+                Long segmentFromData = segments.get(i+segmentRange[0]);
+
+                if (segmentFromData == null)
+                    return false;
+                else if (segmentFromData != rectanglePerLevel[i])
+                    return false;
+
+            }
+        }
+
+        return true;
+
+    }
+
+    private Boolean checkEdgeCases(int[][] rectangles)
+    {
+        if (rectangles.length == 0)
+            return Boolean.FALSE;
+        else if (rectangles.length == 1)
+            return Boolean.TRUE;
+        else
+            return null;
+    }
+
+    /**
+     * Interface method
+     * @param rectangles
+     * @return
+     */
+    public boolean isRectangleCover(int[][] rectangles)
+    {
+        //Edge cases
+        Boolean edgeCases = checkEdgeCases(rectangles);
+
+        if (edgeCases != null)
+            return edgeCases;
+
+        for (int[] rectangle : rectangles)
+        {
+            if (!saveRectangle(rectangle[0],rectangle[1],rectangle[2],rectangle[3]))
+                return false;
+            updateEdgeValues(rectangle[0],rectangle[1],rectangle[2],rectangle[3]);
+
+            /*printAreas();
+            System.out.println("-----------------------------");*/
+        }
+
+        return checkTotalArea();
+
+    }
+}
