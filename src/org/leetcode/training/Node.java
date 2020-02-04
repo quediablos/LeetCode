@@ -25,8 +25,10 @@ public class Node
         return "Node{" +
                 "lowX=" + lowX +
                 ", lowY=" + lowY +
-                ", highX=" + highX +
-                ", highY=" + highY +
+                ", minX=" + minX +
+                ", minY=" + minY +
+                ", maxX=" + maxX +
+                ", maxY=" + maxY +
                 '}';
     }
 }

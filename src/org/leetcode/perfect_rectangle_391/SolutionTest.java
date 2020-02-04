@@ -2,6 +2,11 @@ package org.leetcode.perfect_rectangle_391;
 
 import org.junit.Test;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+
 import static org.junit.Assert.*;
 
 public class SolutionTest
@@ -116,7 +121,7 @@ public class SolutionTest
     }
 
 
-    @Test
+    /*@Test
     public void testLC_44()
     {
         Solution solution = new Solution();
@@ -132,5 +137,35 @@ public class SolutionTest
                 rectangles[i] = BigInput_44_2.input[i-BigInput_44_0.input.length-BigInput_44_1.input.length];
         }
         assertTrue(solution.isRectangleCover(rectangles));
+    }*/
+
+    @Test
+    public void test_43()
+    {
+        Solution solution = new Solution();
+        int[][] rectangles = new int[][] {{1,1,2,2},{0,1,1,2},{1,0,2,1},{0,2,3,3},{2,0,3,3}};
+        assertFalse(solution.isRectangleCover(rectangles));
+    }
+
+    @Test
+    public void test_46() throws IOException
+    {
+        BufferedReader txtReader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("InputOfLC46")));
+
+        int[][] rectangles = new int[10779][4];
+        int i=0;
+
+        for (String line; (line = txtReader.readLine()) != null;)
+        {
+            String[] lineSplit = line.split(",");
+            rectangles[i][0] = Integer.parseInt(lineSplit[0]);
+            rectangles[i][1] = Integer.parseInt(lineSplit[1]);
+            rectangles[i][2] = Integer.parseInt(lineSplit[2]);
+            rectangles[i][3] = Integer.parseInt(lineSplit[3]);
+            i++;
+        }
+
+        Solution solution = new Solution();
+        assertFalse(solution.isRectangleCover(rectangles));
     }
 }

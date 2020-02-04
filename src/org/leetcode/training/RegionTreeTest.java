@@ -33,21 +33,15 @@ public class RegionTreeTest
         RegionTree regionTree = new RegionTree();
         Node root = null;
 
-        for (int x= -2; x<= 1; x++)
+        for (int x= -100; x<= 99; x++)
         {
-            for (int y=-2; y<=1; y++)
+            for (int y=-100; y<=99; y++)
             {
-                try {
-                    root = regionTree.insert(root,x,y,x+1,y+1);
-                }
-                catch (Error e)
-                {
-                    x =0;
-                }
+                root = regionTree.insert(root,x,y,x+1,y+1);
             }
         }
 
-        Node newNode = new Node(1,1,2,2);
+        Node newNode = new Node(-200,-200,-10,-10);
         assertTrue(regionTree.overlapSearch(root, newNode));
 
         int x=0;

@@ -29,11 +29,11 @@ public class RegionTree
         if (checkOverlap(root,node))
             return true;
 
-        if (root.node3 != null && root.node3.maxX >= node.lowX && root.node3.maxY >= node.lowY)
+        if (root.node3 != null && root.node3.maxX > node.lowX && root.node3.maxY > node.lowY)
             return overlapSearch(root.node3,node);
-        else if (root.node2 != null && root.node2.maxX >= node.lowX)
+        else if (root.node2 != null && root.node2.maxX > node.lowX)
             return overlapSearch(root.node2,node);
-        else if (root.node4 != null && root.node4.maxY >= node.lowY)
+        else if (root.node4 != null && root.node4.maxY > node.lowY)
             return overlapSearch(root.node4,node);
         else
             return overlapSearch(root.node1,node);

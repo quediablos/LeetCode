@@ -1,6 +1,9 @@
 package org.leetcode.perfect_rectangle_391;
 
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class Solution
 {
 
@@ -11,19 +14,11 @@ public class Solution
     int maxX = -1;
     int maxY = -1;
     private Node root = null;
-    private Node root1 = null;
-    private Node root2 = null;
-    private Node root3 = null;
-    private Node root4 = null;
 
     public class Node
     {
         public int lowX, lowY, highX, highY;
         public int minX, minY, maxX, maxY;
-        public int[] tip1;
-        public int[] tip2;
-        public int[] tip3;
-        public int[] tip4;
 
         public Node node1, node2, node3, node4;
 
@@ -33,22 +28,10 @@ public class Solution
             this.highX = highX;
             this.highY = highY;
 
-            tip1 = new int[2];
-            tip1[0] = highX;
-            tip1[1] = highY;
-
-            tip2 = new int[2];
-            tip2[0] = lowX;
-            tip2[1] = highY;
-
-            tip3 = new int[2];
-            tip3[0] = lowX;
-            tip3[1] = lowY;
-
-            tip4 = new int[2];
-            tip4[0] = highX;
-            tip4[1] = lowY;
-
+            this.minX = lowX;
+            this.minY = lowY;
+            this.maxX = highX;
+            this.maxY = highY;
         }
 
         @Override
@@ -79,55 +62,14 @@ public class Solution
         if (checkOverlap(root,node))
             return true;
 
-        //at 1
-        if (node.lowX >= root.lowX && node.lowY >= root.lowY)
-        {
-            if (root.node2 != null && root.node2.tip1[0] > node.lowX && root.node2.tip1[1] > node.lowY)
-                return true;
-            else if (root.node3 != null && root.node3.tip1[0] > node.lowX && root.node3.tip1[1] > node.lowY)
-                return true;
-            else if (root.node4 != null && root.node4.tip1[0] > node.lowX && root.node4.tip1[1] > node.lowY)
-                return true;
-            else
-                return overlapSearch(root.node1,node);
-        }
-        //at 2
-        else if (node.lowX < root.lowX && node.lowY >= root.lowY)
-        {
-            if (root.node1 != null && root.node1.tip2[0] < node.highX && root.node1.tip2[1] > node.lowY)
-                return true;
-            else if (root.node3 != null && root.node3.tip1[0] > node.lowX && root.node3.tip1[1] > node.lowY)
-                return true;
-            else if (root.node4 != null && root.node4.tip2[0] < node.highX && root.node4.tip2[1] > node.lowY)
-                return true;
-            else overlapSearch(root.node2,node);
-        }
-        //at 3
-        else if (node.lowX < root.lowX && node.lowY < root.lowY)
-        {
-            if (root.node1 != null && root.node1.tip3[0] < node.lowX && root.node1.tip3[1] < node.lowY)
-                return true;
-            else if (root.node2 != null && root.node2.tip3[0] < node.highX && root.node2.tip3[1] < node.lowY)
-                return true;
-            else if (root.node4 != null && root.node4.tip2[0] < node.highX && root.node4.tip2[1] > node.lowY)
-                return true;
-            else
-                overlapSearch(root.node3,node);
-        }
-        //at 4
+        if (root.node3 != null && root.node3.maxX > node.lowX && root.node3.maxY > node.lowY)
+            return overlapSearch(root.node3,node);
+        else if (root.node2 != null && root.node2.maxX > node.lowX)
+            return overlapSearch(root.node2,node);
+        else if (root.node4 != null && root.node4.maxY > node.lowY)
+            return overlapSearch(root.node4,node);
         else
-        {
-            if (root.node1 != null && root.node1.tip4[0] > node.lowX && root.node1.tip4[1] < node.lowY)
-                return true;
-            else if (root.node2 != null && root.node2.tip4[0] > node.lowX && root.node2.tip4[1] < node.lowY)
-                return true;
-            else if (root.node3 != null && root.node3.tip1[0] > node.lowX && root.node3.tip1[1] > node.lowY)
-                return true;
-            else
-                return overlapSearch(root.node4,node);
-        }
-
-        return false;
+            return overlapSearch(root.node1,node);
     }
 
     public Node insert(Node root,int lowX,int lowY,int highX,int highY)
@@ -150,28 +92,20 @@ public class Solution
                 root.node1 = insert(root.node1,lowX,lowY,highX,highY);
         }
 
-        if (highX > root.tip1[0] && highY > root.tip1[1])
-        {
-            root.tip1[0] = highX;
-            root.tip1[1] = highY;
-        }
-        else if (lowX < root.tip2[0] && highY > root.tip2[1])
-        {
-            root.tip2[0] = lowX;
-            root.tip2[1] = highY;
-        }
-        else if (lowX < root.tip3[0] && lowY < root.tip3[1])
-        {
-            root.tip3[0] = lowX;
-            root.tip3[1] = lowY;
-        }
-        else if (highX < root.tip4[0] && lowY < root.tip4[1])
-        {
-            root.tip4[0] = highX;
-            root.tip4[1] = lowY;
-        }
+        if (highX > root.maxX)
+            root.maxX = highX;
+
+        if (highY > root.maxY)
+            root.maxY = highY;
+
+        if (lowX < root.minX)
+            root.minX = lowX;
+
+        if (lowY < root.minY)
+            root.minY = lowY;
 
         return root;
+
     }
 
     private Boolean checkEdgeCases(int[][] rectangles)
