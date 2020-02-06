@@ -1,0 +1,260 @@
+package org.leetcode.perfect_rectangle_391;
+
+
+public class Solution
+{
+
+    private long areaGross = 0l;
+
+    int minX = Integer.MAX_VALUE;
+    int minY = Integer.MAX_VALUE;
+    int maxX = -1;
+    int maxY = -1;
+    private Node root = null;
+    private Node[] roots = new Node[4];
+    private Node root1 = null;
+    private Node root2 = null;
+    private Node root3 = null;
+    private Node root4 = null;
+
+    public class Node
+    {
+        public int lowX, lowY, highX, highY;
+        public int minX, minY, maxX, maxY;
+
+        public Node node1, node2, node3, node4;
+        public Node[] branches;
+
+        public Node(int lowX, int lowY, int highX, int highY)
+        {
+            this.lowX = lowX;
+            this.lowY = lowY;
+            this.highX = highX;
+            this.highY = highY;
+            branches = new Node[4];
+
+        }
+
+        public int[] getCorner(int cornerNo)
+        {
+            int[] corner = new int[2];
+
+            if (cornerNo == 0)
+            {
+                corner[0] = highX;
+                corner[1] = highY;
+            }
+            else if (cornerNo == 1)
+            {
+                corner[0] = lowX;
+                corner[1] = highY;
+            }
+            else if (cornerNo == 2)
+            {
+                corner[0] = lowX;
+                corner[1] = lowY;
+            }
+            else if (cornerNo == 3)
+            {
+                corner[0] = highX;
+                corner[1] = lowY;
+            }
+
+            return corner;
+        }
+
+        @Override
+        public String toString() {
+            return "Node{" +
+                    "lowX=" + lowX +
+                    ", lowY=" + lowY +
+                    ", highX=" + highX +
+                    ", highY=" + highY +
+                    '}';
+        }
+    }
+
+    private boolean checkOverlap(Node node1, Node node2)
+    {
+
+        return (node1.lowX < node2.highX && node1.highX > node2.lowX && node1.highY > node2.lowY && node1.lowY < node2.highY);
+    }
+
+
+    public boolean overlapSearch(Node root, Node node, int orientation)
+    {
+        if (root == null)
+            return false;
+
+        if (checkOverlap(root,node))
+            return true;
+
+        int cornerOfRoot[] = root.getCorner(orientation);
+        int cornerOfNode[] = node.getCorner(orientation);
+
+        int branchToPick = comparePoints(cornerOfRoot,cornerOfNode);
+
+        return overlapSearch(root.branches[branchToPick],node,orientation);
+    }
+
+    public boolean overlapSearchBFS(Node[] roots,Node node)
+    {
+        Node[] trees = new Node[4];
+        for (int i=0; i<=3; i++)
+            trees[i] = roots[i];
+
+        int[][] cornersOfNode = new int[4][2];
+        for (int i=0; i<=3; i++)
+            cornersOfNode[i] = node.getCorner(i);
+
+        int availableTrees = 0;
+
+        while (true)
+        {
+            availableTrees = 0;
+            //for each tree
+            for (int i=0; i<=3; i++)
+            {
+                if (trees[i] != null)
+                {
+                    availableTrees++;
+                    if (checkOverlap(trees[i],node))
+                        return true;
+
+                    int[] cornerOfCurrentNode = trees[i].getCorner(i);
+                    int[] cornerOfNode = cornersOfNode[i];
+                    int branchToGo = comparePoints(cornerOfCurrentNode,cornerOfNode);
+                    trees[i] = trees[i].branches[branchToGo];
+                }
+
+            }
+            if (availableTrees == 0)
+                return false;
+        }
+
+    }
+
+    private int comparePoints(int[] from, int[] to)
+    {
+        // 1 or 4
+        if (to[0] >= from[0])
+        {
+            if (to[1] >= from[1])
+                return 0;
+            else
+                return 3;
+        }
+        // 2 or 3
+        else
+        {
+            if (to[1] >= from[1])
+                return 1;
+            else
+                return 2;
+        }
+    }
+
+    public Node insertOriented(Node root,Node node, int orientation)
+    {
+        if (root == null)
+            return node;
+
+        int cornerOfRoot[] = root.getCorner(orientation);
+        int cornerOfNode[] = node.getCorner(orientation);
+
+        int branchToPick = comparePoints(cornerOfRoot,cornerOfNode);
+        root.branches[branchToPick] = insertOriented(root.branches[branchToPick],node,orientation);
+
+        return root;
+
+    }
+
+    private Boolean checkEdgeCases(int[][] rectangles)
+    {
+        if (rectangles.length == 0)
+            return Boolean.FALSE;
+        else if (rectangles.length == 1)
+            return Boolean.TRUE;
+        else
+            return null;
+    }
+
+    private void updateEdgeValues(int lowX, int lowY, int highX, int highY)
+    {
+        if (lowX < minX)
+            minX = lowX;
+
+        if (lowY < minY)
+            minY = lowY;
+
+        if (highX > maxX)
+            maxX = highX;
+
+        if (highY > maxY)
+            maxY = highY;
+    }
+
+    private boolean overlapSearchBruteForce(int[][] rectangles)
+    {
+        for (int i=0; i<rectangles.length; i++)
+        {
+            Node node1 = new Node(rectangles[i][0],rectangles[i][1],rectangles[i][2],rectangles[i][3]);
+            for (int k=0; k<rectangles.length; k++)
+            {
+                if (i != k)
+                {
+                    Node node2 = new Node(rectangles[k][0],rectangles[k][1],rectangles[k][2],rectangles[k][3]);
+                    if (checkOverlap(node1,node2))
+                        return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private boolean saveRectangle(int lowX, int lowY, int highX, int highY)
+    {
+        Node[] nodes = new Node[4];
+        for (int i=0; i<=3; i++)
+            nodes[i] = new Node(lowX,lowY,highX,highY);
+
+        //check for overlapping
+        if (overlapSearchBFS(roots,nodes[0]))
+            return false;
+
+        //insert to trees.
+        for (int i=0; i<=3; i++)
+            roots[i] = insertOriented(roots[i],nodes[i],i);
+
+        areaGross += (highX-lowX)*(highY-lowY);
+
+        return true;
+    }
+
+    /**
+     * Interface method
+     * @param rectangles
+     * @return
+     */
+    public boolean isRectangleCover(int[][] rectangles)
+    {
+        //Edge cases
+        Boolean edgeCases = checkEdgeCases(rectangles);
+
+        if (edgeCases != null)
+            return edgeCases;
+
+        for (int[] rectangle : rectangles)
+        {
+            if (!saveRectangle(rectangle[0],rectangle[1],rectangle[2],rectangle[3]))
+                return false;
+
+            updateEdgeValues(rectangle[0],rectangle[1],rectangle[2],rectangle[3]);
+        }
+
+        //Compare the total area
+        return (maxX-minX)*(maxY-minY) == areaGross;
+
+    }
+}

@@ -49,6 +49,14 @@ public class SolutionTest
         assertTrue(solution.isRectangleCover(rectangles));
     }
 
+    @Test
+    public void testOwn_5()
+    {
+        Solution solution = new Solution();
+        int[][] rectangles = new int[][] {{0,0,1,1},{1000,1000,1001,1001},{-1000,-1000,-999,-999},{-100,-100,100,100},{-1,-1,1,1}};
+        assertFalse(solution.isRectangleCover(rectangles));
+    }
+
     /***************************** LC cases *****************************/
 
     @Test
@@ -119,25 +127,6 @@ public class SolutionTest
 
         assertTrue(solution.isRectangleCover(rectangles));
     }
-
-
-    /*@Test
-    public void testLC_44()
-    {
-        Solution solution = new Solution();
-        int[][] rectangles = new int[BigInput_44_0.input.length+ BigInput_44_1.input.length+ BigInput_44_2.input.length][4];
-
-        for(int i = 0; i<BigInput_44_0.input.length + BigInput_44_1.input.length+ BigInput_44_2.input.length; i++)
-        {
-            if (i < BigInput_44_0.input.length)
-                rectangles[i] = BigInput_44_0.input[i];
-            else if (i < BigInput_44_0.input.length+BigInput_44_1.input.length)
-                rectangles[i] = BigInput_44_1.input[i-BigInput_44_0.input.length];
-            else
-                rectangles[i] = BigInput_44_2.input[i-BigInput_44_0.input.length-BigInput_44_1.input.length];
-        }
-        assertTrue(solution.isRectangleCover(rectangles));
-    }*/
 
     @Test
     public void test_43()
