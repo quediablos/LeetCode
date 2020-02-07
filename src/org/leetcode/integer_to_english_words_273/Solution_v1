@@ -1,8 +1,8 @@
 package org.leetcode.integer_to_english_words_273;
 
 /**
- * Beating 9% in terms of time complexity.
- **/
+* Beating 9% in terms of time complexity.
+**/
 public class Solution
 {
     private static final String[] THOUSANDS = new String[] {"","Thousand","Million","Billion"};

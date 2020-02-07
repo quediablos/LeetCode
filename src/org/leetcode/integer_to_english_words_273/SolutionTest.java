@@ -41,6 +41,35 @@ public class SolutionTest
         assertTrue(solution.numberToWords(111).equals("One Hundred Eleven"));
     }
 
+    @Test
+    public void testOwn_5()
+    {
+        Solution solution = new Solution();
+
+        assertTrue(solution.numberToWords(1_000_000).equals("One Million"));
+    }
+
+    @Test
+    public void testOwn_6()
+    {
+        Solution solution = new Solution();
+
+        assertTrue(solution.numberToWords(1_000_000).equals("One Million"));
+        assertTrue(solution.numberToWords(1).equals("One"));
+        assertTrue(solution.numberToWords(1_000_009).equals("One Million Nine"));
+        assertTrue(solution.numberToWords(1_000_014_000).equals("One Billion Fourteen Thousand"));
+        assertTrue(solution.numberToWords(20_000_009).equals("Twenty Million Nine"));
+        assertTrue(solution.numberToWords(200_340_009).equals("Two Hundred Million Three Hundred Forty Thousand Nine"));
+        assertTrue(solution.numberToWords(1_111_111_111).equals("One Billion One Hundred Eleven Million One Hundred Eleven Thousand One Hundred Eleven"));
+    }
+
+    @Test
+    public void testStringBuilderPerformance()
+    {
+        for (int i=1; i<= 1000;i++)
+            new StringBuilder("asdada");
+    }
+
     /*************************** LC Cases ************************/
 
     @Test
