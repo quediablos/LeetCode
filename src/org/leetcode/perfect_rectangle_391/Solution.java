@@ -171,7 +171,7 @@ public class Solution
     private void insertRectangle(Segment rootSegment, Rectangle rectangle)
     {
         //no more segmentation
-        if (rootSegment.degree == 15)
+        if (rootSegment.degree == MAX_POWER_OF_TWO)
         {
             rootSegment.rectangles.add(rectangle);
             return;
