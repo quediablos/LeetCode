@@ -1,0 +1,208 @@
+package org.leetcode.create_maximum_number_321;
+
+import java.util.LinkedList;
+import java.util.Queue;
+
+public class Solution
+{
+    private static final int MAX_DIGIT = 9;
+    public class Value
+    {
+        public int number;
+        public int array;
+        public int index1;
+        public int index2;
+        public Value from;
+        public int degree;
+
+        public Value(int number, int array, int index1, int index2, Value from, int degree) {
+            this.number = number;
+            this.array = array;
+            this.index1 = index1;
+            this.index2 = index2;
+            this.from = from;
+            this.degree = degree;
+        }
+
+        @Override
+        public String toString() {
+            return "Value{" +
+                    "number=" + number +
+                    ", array=" + array +
+                    ", index1=" + index1 +
+                    ", index2=" + index2 +
+                    ", from=" + from +
+                    ", degree=" + degree +
+                    '}';
+        }
+    }
+
+    public class MutableInt
+    {
+        public int val;
+
+        public MutableInt(int val)
+        {
+            this.val = val;
+        }
+    }
+
+
+
+    private int[] makeNumber(Value value,int length)
+    {
+        Value v = value;
+        int[] number = new int[length];
+
+        for (int i=length-1; i>=0; i--)
+        {
+            number[i] = v.number;
+            v = v.from;
+        }
+
+        return number;
+    }
+
+    private Value solveDraw(int[] nums1,int index1,int index1AtDraw, int[] nums2, int index2, int index2AtDraw,MutableInt allowedSkips)
+    {
+
+        Value nextValueFrom1,nextValueFrom2;
+
+        do
+         {
+            if (index1 + 1 < nums1.length)
+            {
+
+            }
+            else
+            {
+                nextValueFrom1 = new Value(nums2[index2+1],2,index1AtDraw,index2+1,null,1);
+                index2++;
+            }
+
+            if (index2 + 1 < nums2.length)
+            {
+                nextValueFrom2 = new Value(nums2[index2+1],2,index1,index2+1,null,1);
+                index2++;
+            }
+            else
+            {
+                nextValueFrom2 = new Value(nums1[index1+1],1,index1+1,index2,null,1);
+                index1++;
+            }
+        }
+        while (--allowedSkips.val > 0 && nextValueFrom1.number == nextValueFrom2.number);
+
+        if (nextValueFrom1.number > nextValueFrom2.number)
+            return nextValueFrom1;
+        else
+            return nextValueFrom2;
+
+    }
+
+    /**
+     * Interface method
+     * @param nums1
+     * @param nums2
+     * @param k
+     * @return
+     */
+    public int[] maxNumber(int[] nums1, int[] nums2, int k)
+    {
+        //TODO:edge cases
+
+        int index1 = -1;
+        int index2 = -1;
+        int remainingNumbers = k;
+        int[] result = new int[k];
+        int resultInd = 0;
+        //int allowedSkips = nums1.length + nums2.length - k;
+        MutableInt allowedSkips = new MutableInt(nums1.length + nums2.length - k);
+
+        while (remainingNumbers > 0)
+        {
+
+            int bestValFrom1, bestValFrom2;
+            int bestIndFrom1 = -1;
+            int bestIndFrom2 = -1;
+            int maxValue = -1;
+
+            //find best number in array 1
+            if (index1+1 < nums1.length)
+            {
+                for (int i=index1+1; i<=index1+1+allowedSkips.val;i++)
+                {
+                    if (nums1[i] > maxValue)
+                    {
+                        maxValue = nums1[i];
+                        bestIndFrom1 = i;
+
+                        if (maxValue == MAX_DIGIT)
+                            break;
+                    }
+                }
+            }
+            else
+            {
+                maxValue = -1;
+            }
+
+            bestValFrom1 = maxValue;
+
+            //Find best number in array 2
+            maxValue = -1;
+            if (index2+1 < nums2.length)
+            {
+                for (int i=index2+1; i<=index2+1+allowedSkips.val;i++)
+                {
+                    if (nums2[i] > maxValue)
+                    {
+                        maxValue = nums2[i];
+                        bestIndFrom2 = i;
+
+                        if (maxValue == MAX_DIGIT)
+                            break;
+                    }
+                }
+            }
+            else
+            {
+                maxValue = -1;
+            }
+
+            bestValFrom2 = maxValue;
+
+            //Compare values from both arrays.
+            if (bestValFrom1 > bestValFrom2)
+            {
+                result[resultInd++] = bestValFrom1;
+                allowedSkips.val -= bestIndFrom1 - index1 -1;
+                index1 = bestIndFrom1;
+                remainingNumbers--;
+            }
+            else if (bestValFrom2 > bestValFrom1)
+            {
+                result[resultInd++] = bestValFrom2;
+                allowedSkips.val -= bestIndFrom2 - index2 -1;
+                index2 = bestIndFrom2;
+                remainingNumbers--;
+            }
+            //Draw
+            else
+            {
+                Value valueToPick = solveDraw(nums1,bestIndFrom1,nums2,bestIndFrom2,allowedSkips);
+                result[resultInd++] = valueToPick.number;
+                index1 = valueToPick.index1;
+                index2 = valueToPick.index2;
+                remainingNumbers--;
+            }
+
+            int x=0;
+
+        }
+
+
+        return result;
+
+    }
+}
