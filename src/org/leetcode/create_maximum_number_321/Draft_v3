@@ -260,14 +260,29 @@ public class Solution
                 Value value2 = openNodes.getLast();
                 if (value1.degree == value2.degree)
                 {
-                    keepBestAmongOpenNodes(openNodes);
-
-                    if (openNodes.size() == 1)
+                    if (value1.number > value2.number)
                     {
+                        openNodes.remove(1);
+                        result[resultInd.val++] = value1.number;
                         draw = false;
-
                     }
-                    result[resultInd.val++] = openNodes.getFirst().number;
+                    else if (value2.number > value1.number)
+                    {
+                        openNodes.remove(0);
+                        result[resultInd.val++] = value2.number;
+                        draw = false;
+                    }
+                    else
+                    {
+                        if (value1.array == value2.array && value1.index == value2.index)
+                        {
+                            openNodes.remove(0);
+                            draw = false;
+                        }
+
+
+                        result[resultInd.val++] = value2.number;
+                    }
                 }
             }
             else if (whichOneToPick == 3)
