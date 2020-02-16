@@ -1,0 +1,201 @@
+package org.leetcode.best_time_to_sell_and_buy_stocks_188;
+
+import com.sun.javafx.collections.MappingChange;
+
+import java.util.*;
+
+public class Solution
+{
+
+    public class Deal
+    {
+        public int start;
+        public int end;
+        public int profit;
+        public float score;
+
+        public Deal(int start, int end, int profit, float score)
+        {
+            this.start = start;
+            this.end = end;
+            this.profit = profit;
+            this.score = score;
+        }
+
+        @Override
+        public boolean equals(Object o)
+        {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Deal deal = (Deal) o;
+            return start == deal.start &&
+                    end == deal.end &&
+                    profit == deal.profit &&
+                    Float.compare(deal.score, score) == 0;
+        }
+
+        @Override
+        public String toString()
+        {
+            return "Deal{" +
+                    "start=" + start +
+                    ", end=" + end +
+                    ", profit=" + profit +
+                    ", score=" + score +
+                    '}';
+        }
+    }
+
+    public class Combination
+    {
+        public List<Deal> deals;
+        public int totalProfit;
+
+        public Combination(List<Deal> deals, int totalProfit)
+        {
+            this.deals = deals;
+            this.totalProfit = totalProfit;
+        }
+
+        @Override
+        public String toString()
+        {
+            return "Combination{" +
+                    "deals=" + deals +
+                    ", totalProfit=" + totalProfit +
+                    '}';
+        }
+    }
+
+    private List<Deal> findDealsOrderedByPurchaseDay(int[] prices)
+    {
+        //TODO:eliminate among all the deals to reduce the number.
+        List<Deal> dealsByPurchaseDay = new ArrayList<>();
+        int maxProfit = 0;
+        for (int i=0; i<prices.length-1; i++)
+        {
+            maxProfit = 0;
+            for (int j=i+1; j<prices.length; j++)
+            {
+                if (prices[i] < prices[j])
+                {
+                    int profit = prices[j]-prices[i];
+
+                    if (profit > maxProfit)
+                    {
+                        float score = (float)profit / (float)(j-i);
+                        dealsByPurchaseDay.add(new Deal(i,j,profit,score));
+                        maxProfit = profit;
+                    }
+                }
+            }
+        }
+
+        return dealsByPurchaseDay;
+    }
+
+    private List<Deal> findDealsOrderedBySaleDay(int[] prices)
+    {
+        List<Deal> dealsBySaleDay = new ArrayList<>();
+        for (int i=prices.length-1; i>=1; i--)
+        {
+            for (int j=i-1; j>=0; j--)
+            {
+                if (prices[j] < prices[i])
+                {
+                    int profit = prices[i]-prices[j];
+                    float score = (float)profit / (float)(i-j);
+                    dealsBySaleDay.add(new Deal(j,i,profit,score));
+                }
+            }
+        }
+
+        return dealsBySaleDay;
+    }
+
+    private boolean checkCompatibility(Deal deal1, Deal deal2)
+    {
+        return (deal1.end < deal2.start-1 || deal2.end < deal1.start-1);
+    }
+
+    private List<List<Deal>> findSubsets(Map<Integer,List<List<Deal>>> allSubsets,List<Deal> deals,int until)
+    {
+        List<List<Deal>> subsets = new ArrayList<>();
+        if (until == 2)
+        {
+            for (int i=0; i<deals.size()-1;i++)
+            {
+                for (int j=i+1; j<deals.size(); j++)
+                {
+                    List<Deal> subset = new ArrayList<>();
+
+                    if (checkCompatibility(deals.get(i),deals.get(j)))
+                    {
+                        subset.add(deals.get(i));
+                        subset.add(deals.get(j));
+                        subsets.add(subset);
+                    }
+
+                }
+            }
+
+            allSubsets.put(2,subsets);
+            return subsets;
+        }
+        else
+        {
+            List<List<Deal>> minorSubsets = findSubsets(allSubsets,deals,until-1);
+
+            for (Deal deal:deals)
+            {
+                for (List<Deal> minorSubset : minorSubsets)
+                {
+                    List<Deal> subset = new ArrayList<>();
+                    boolean compatible = true;
+
+                    for (Deal dealInMinorSubset : minorSubset)
+                    {
+                        if (!dealInMinorSubset.equals(deal) && checkCompatibility(deal,dealInMinorSubset))
+                        {
+                            subset.add(dealInMinorSubset);
+                        }
+                        else
+                        {
+                            compatible = false;
+                            break;
+                        }
+                    }
+
+                    if (compatible)
+                    {
+                        subset.add(deal);
+                        subsets.add(subset);
+                    }
+
+                }
+            }
+
+            allSubsets.put(until,subsets);
+            return subsets;
+        }
+
+    }
+
+    /**
+     * Interface method
+     * @param k
+     * @param prices
+     * @return
+     */
+    public int maxProfit(int k, int[] prices)
+    {
+        Map<Integer,List<List<Deal>>> allSubsets = new HashMap<>();
+        Map<Integer,Integer> bestProfits = new HashMap<>();
+
+        List<Deal> deals = findDealsOrderedByPurchaseDay(prices);
+
+        findSubsets(allSubsets,deals,3);
+
+        return 0;
+    }
+}
