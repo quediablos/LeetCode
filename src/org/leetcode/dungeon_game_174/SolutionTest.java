@@ -29,6 +29,23 @@ public class SolutionTest
         assertTrue(solution.calculateMinimumHP(dungeon) == 4);
     }
 
+
+    @Test
+    public void testLC_41()
+    {
+        Solution solution = new Solution();
+        int[][] dungeon = new int[][]  {{0,-74,-47,-20,-23,-39,-48},
+                                        {37,-30,37,-65,-82,28,-27},
+                                        {-76,-33,7,42,3,49,-93},
+                                        {37,-41,35,-16,-96,-56,38},
+                                        {-52,19,-37,14,-65,-42,9},
+                                        {5,-26,-30,-65,11,5,16},
+                                        {-60,9,36,-36,41,-47,-86},
+                                        {-22,19,-5,-41,-8,-96,-95}};
+
+        assertTrue(solution.calculateMinimumHP(dungeon) == 30);
+    }
+
     @Test
     public void testLC_42()
     {

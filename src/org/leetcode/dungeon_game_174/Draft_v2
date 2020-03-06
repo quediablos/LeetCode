@@ -26,7 +26,6 @@ public class Solution
             this.depth = depth;
         }
 
-
         @Override
         public String toString() {
             return "Node{" +
@@ -47,24 +46,23 @@ public class Solution
         int[] hpValues;
         Node[] neighbours = new Node[2];
 
-        //right
         if (node.c < rowLength-1)
         {
             hpValues = calculateHpForPassing(node.hpAfterPassing,node.hpRequiredToPass,dungeon[node.r][node.c+1]);
-            neighbours[1] = new Node(dungeon[node.r][node.c+1],node,node.r,node.c+1,hpValues[0],hpValues[1],node.depth+1);
+            neighbours[0] = new Node(dungeon[node.r][node.c+1],node,node.r,node.c+1,hpValues[0],hpValues[1],node.depth+1);
         }
         else
-            neighbours[1] = null;
+            neighbours[0] = null;
 
-        //down
+
         if (node.r < colLength-1)
         {
             hpValues = calculateHpForPassing(node.hpAfterPassing,node.hpRequiredToPass,dungeon[node.r+1][node.c]);
-            neighbours[0] = new Node(dungeon[node.r+1][node.c],node,node.r+1,node.c,hpValues[0],hpValues[1],node.depth+1);
+            neighbours[1] = new Node(dungeon[node.r+1][node.c],node,node.r+1,node.c,hpValues[0],hpValues[1],node.depth+1);
         }
 
         else
-            neighbours[0] = null;
+            neighbours[1] = null;
 
         if (neighbours[0] == null && neighbours[1] == null)
             return null;
@@ -135,55 +133,6 @@ public class Solution
 
     }
 
-    private LinkedList<Node> backtrack(LinkedList<Node> openNodes)
-    {
-        if (openNodes.size() <= 2)
-            return openNodes;
-
-        LinkedList<Node> postOpenNodes = new LinkedList<>();
-        Iterator<Node> iterator = openNodes.iterator();
-        Node previous = iterator.next();
-        Node current = iterator.next();
-        boolean first = true;
-
-        do
-        {
-            if (!first)
-            {
-                previous = current;
-                current = iterator.next();
-            }
-
-            if (previous.r == current.r && previous.c == current.c)
-            {
-                int compare = compareNodes(previous,current);
-
-                if (compare == 1)
-                    postOpenNodes.add(previous);
-                else
-                    postOpenNodes.add(current);
-            }
-            else
-            {
-                if (first)
-                    postOpenNodes.add(previous);
-
-                if (!iterator.hasNext())
-                    postOpenNodes.add(current);
-            }
-
-            first = false;
-
-        }
-        while (iterator.hasNext());
-
-        if (postOpenNodes.size() > 2)
-            return postOpenNodes;
-        else
-            return openNodes;
-
-    }
-
     /**
      * Interface method
      * @param dungeon
@@ -211,17 +160,52 @@ public class Solution
             }
             else
             {
-                if (neighbours[0] != null)
+                /*if (neighbours[0] != null)
                     openNodes.addLast(neighbours[0]);
                 if (neighbours[1] != null)
-                    openNodes.addLast(neighbours[1]);
-
+                    openNodes.addLast(neighbours[1]);*/
+                openNodes.add(neighbours[0]);
+                openNodes.add(neighbours[1]);
             }
 
-            //Backtrack
-            if (openNodes.size() >= 2 && openNodes.getFirst().depth == openNodes.getLast().depth)
+            //Check for duplicates.
+            if (openNodes.getFirst().depth == openNodes.getLast().depth)
             {
-                openNodes = backtrack(openNodes);
+                Iterator<Node> iterator1 = openNodes.iterator();
+                Iterator<Node> iterator2 = openNodes.iterator();
+                iterator2.next();
+                LinkedList<Node> openNodesNew = new LinkedList<>();
+
+                while (iterator1.hasNext() && iterator2.hasNext())
+                {
+                    Node node1 = iterator1.next();
+                    Node node2 = iterator2.next();
+
+                    //Diamond case
+                    if (node1.r == node2.r && node1.c == node2.c)
+                    {
+                        int compare = compareNodes(node1,node2);
+
+                        if (compare == 1)
+                            openNodesNew.add(node1);
+                        else
+                            openNodes.add(node2);
+
+                        iterator1.next();
+                        iterator2.next();
+                    }
+                    else
+                    {
+                        openNodesNew.add(node1);
+
+                        if (!iterator2.hasNext())
+                            openNodesNew.add(node2);
+                    }
+
+                }
+
+                if (openNodesNew.size() > 0)
+                    openNodes = openNodesNew;
             }
 
         }
